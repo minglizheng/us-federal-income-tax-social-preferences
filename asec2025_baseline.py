@@ -1,19 +1,15 @@
+# -*- coding: utf-8 -*-
 
+# -*- coding: utf-8 -*-
 """
-Created on Wed Dec  3 16:29:07 2025
-
-@author: mlzheng
-
-Baseline estimation for tax year 2023
+Baseline estimation for tax year 2024
 Married Filing Jointly, EITC and ACTC included as endogenous transfers
+Data: CPS ASEC 2025 (pppub25.csv)
 
 Automates:
-1. For each g in g_grid: find sigma that minimizes population-weighted WAAD
-2. For each g in g_grid: find sigma that minimizes tax-weighted WAAD
-3. Report the global best for each criterion
-4. Print a joint determination table for reporting g values
-
-Prints results for manual checking.
+1. Joint search over g and sigma at 0.01 increments
+2. Finds the global best for population-weighted and tax-weighted criteria
+3. Reports detailed results for selected sigma values at a fixed g
 """
 
 import numpy as np
@@ -27,11 +23,11 @@ warnings.filterwarnings('ignore', message='delta_grad == 0.0')
 # SETTINGS
 # =============================================================================
 
-DATA_FILE = "pppub24.csv"           # 2024 ASEC, tax year 2023
+DATA_FILE = "pppub25.csv"           # 2025 ASEC, tax year 2024
 FILING_STATUS_MAX = 4               # FILESTAT < 4 for married filing jointly
 
-STD_DEDUCTION = 27700                # 2023 MFJ standard deduction
-BRACKETS = np.array([22000, 89450, 190750, 364200, 462500, 693750])
+STD_DEDUCTION = 29200                # 2024 MFJ standard deduction
+BRACKETS = np.array([23200, 94300, 201050, 383900, 487450, 731200])
 
 # Preferential income calibration
 LTCG_SHARE = 1.0
@@ -39,6 +35,17 @@ QDIV_SHARE = 0.75
 
 # Use survey weights?
 USE_WEIGHTS = True
+
+# Grid search parameters
+# G_GRID = [0.10, 0.11, 0.12, 0.13, 0.14, 0.145, 0.15, 0.16]
+# SIGMA_GRID = np.arange(1.00, 1.31, 0.01)
+
+G_GRID = np.arange(0.125, 0.150, 0.001)
+SIGMA_GRID = np.arange(1.05, 1.135, 0.001)
+
+# Detailed output for a specific g
+PRINT_DETAILED_G = 0.14
+DETAILED_SIGMA_VALUES = [1.000, 1.050, 1.080, 1.100, 1.110, 1.120, 1.130, 1.150, 1.200, 1.300]
 
 # Solver settings
 SOLVER_OPTIONS = {
@@ -108,23 +115,27 @@ print(f"  ACTC  > 0:   {pos_weighted_actc/total_weighted*100:.2f}%")
 # CONSTRUCT TAX VARIABLES
 # =============================================================================
 
+# Preferential income
 df['ltcg_estimate'] = df['CAP_VAL'] * LTCG_SHARE
 df['qualified_div_estimate'] = df['DIV_VAL'] * QDIV_SHARE
 df['pref_income'] = df['ltcg_estimate'] + df['qualified_div_estimate']
 
+# Ordinary taxable income
 df['ordinary_income'] = np.clip(df['AGI'] - df['pref_income'], 0, None)
 df['taxable_ordinary'] = np.clip(df['ordinary_income'] - STD_DEDUCTION, 0, None)
 
+# Preferential tax (2024 MFJ thresholds: 0% up to $94,050; 15% up to $583,750)
 def calculate_preferential_tax(pref_income, agi):
     tax = np.zeros_like(pref_income)
-    mask_15 = (agi > 89250) & (agi <= 553850)
-    mask_20 = agi > 553850
+    mask_15 = (agi > 94050) & (agi <= 583750)
+    mask_20 = agi > 583750
     tax[mask_15] = pref_income[mask_15] * 0.15
     tax[mask_20] = pref_income[mask_20] * 0.20
     return tax
 
 df['pref_tax'] = calculate_preferential_tax(df['pref_income'].values, df['AGI'].values)
 
+# Net Investment Income Tax (MFJ threshold: $250,000)
 df['niit_base'] = np.minimum(df['pref_income'], np.maximum(df['AGI'] - 250000, 0))
 df['niit'] = np.where(df['AGI'] > 250000, df['niit_base'] * 0.038, 0)
 
@@ -142,6 +153,7 @@ if USE_WEIGHTS:
 else:
     marsupwt = np.ones_like(df['MARSUPWT'].values)
 
+# Observed revenue share
 g_obs = np.sum(marsupwt * fedtax_ac) / np.sum(marsupwt * agi)
 print(f"\nObserved g (FEDTAX_AC / AGI): {g_obs:.4f}")
 
@@ -246,6 +258,10 @@ assert np.isclose(np.sum(pi_k_tax), 1.0)
 
 print(f"\nBracket population weights: {pi_k.round(4)}")
 
+# =============================================================================
+# WAAD FUNCTION
+# =============================================================================
+
 def compute_waad(optimal_rates):
     rate_errors = np.abs(optimal_rates - x_stat)
     waad_pop = np.sum(pi_k * rate_errors) * 100
@@ -253,24 +269,18 @@ def compute_waad(optimal_rates):
     return waad_pop, waad_tax
 
 # =============================================================================
-# PART 1: DETAILED RESULTS FOR g = 0.145
+# PART 1: DETAILED RESULTS FOR g = PRINT_DETAILED_G
 # =============================================================================
 
-G_DETAILED = 0.145
-DETAILED_SIGMA_VALUES = [
-    1.000, 1.050, 1.080, 1.100, 1.103, 1.106, 1.107, 1.108,
-    1.109, 1.110, 1.111, 1.112, 1.113, 1.114, 1.115, 1.130, 1.300
-]
-
 print("\n" + "="*80)
-print(f"DETAILED RESULTS FOR g = {G_DETAILED:.3f}")
+print(f"DETAILED RESULTS FOR g = {PRINT_DETAILED_G:.3f}")
 print("="*80)
 
 detailed_results = []
 x0 = x_stat.copy()
 
 for sigma in DETAILED_SIGMA_VALUES:
-    result = optimize_tax_rates(sigma, G_DETAILED, x0=x0)
+    result = optimize_tax_rates(sigma, PRINT_DETAILED_G, x0=x0)
     if result.success:
         waad_pop, waad_tax = compute_waad(result.x)
         detailed_results.append({
@@ -296,17 +306,10 @@ print("-"*90)
 # PART 2: JOINT SEARCH OVER g AND sigma
 # =============================================================================
 
-g_fine = np.round(np.arange(0.125, 0.148, 0.001), 3)
-g_report = np.array([0.120, 0.130, 0.140, 0.150, 0.160])
-
-G_GRID = np.union1d(g_fine, g_report)
-SIGMA_GRID_01 = np.round(np.arange(1.050, 1.140, 0.001), 3)
-
 results = []
-report_results = []
 
 print("\n" + "="*80)
-print("JOINT SEARCH OVER g AND sigma (0.001 increments)")
+print("JOINT SEARCH OVER g AND sigma")
 print("="*80)
 
 for g in G_GRID:
@@ -317,7 +320,7 @@ for g in G_GRID:
 
     x0 = x_stat.copy()
 
-    for sigma in SIGMA_GRID_01:
+    for sigma in SIGMA_GRID:
         result = optimize_tax_rates(sigma, g, x0=x0)
 
         if result.success:
@@ -329,7 +332,7 @@ for g in G_GRID:
                     'sigma': sigma,
                     'waad_pop': waad_pop,
                     'waad_tax': waad_tax,
-                    'rates': result.x.copy()
+                    'rates': result.x
                 })
 
             if waad_tax < best_tax['waad']:
@@ -338,7 +341,7 @@ for g in G_GRID:
                     'sigma': sigma,
                     'waad_pop': waad_pop,
                     'waad_tax': waad_tax,
-                    'rates': result.x.copy()
+                    'rates': result.x
                 })
 
             x0 = result.x
@@ -346,35 +349,10 @@ for g in G_GRID:
     if best_pop['sigma'] is not None:
         results.append(best_pop)
         results.append(best_tax)
-
-        # Store reporting values
-        if g in g_report:
-            report_results.append({
-                'g': g,
-                'sigma_pop': best_pop['sigma'],
-                'waad_pop': best_pop['waad_pop'],
-                'sigma_tax': best_tax['sigma'],
-                'waad_tax': best_tax['waad_tax'],
-            })
-
         print(f"  Best pop: sigma = {best_pop['sigma']:.3f}, WAAD_P = {best_pop['waad_pop']:.2f}%, WAAD_T = {best_pop['waad_tax']:.2f}%")
         print(f"  Best tax: sigma = {best_tax['sigma']:.3f}, WAAD_P = {best_tax['waad_pop']:.2f}%, WAAD_T = {best_tax['waad_tax']:.2f}%")
     else:
         print(f"  No successful optimization for g = {g:.3f}")
-
-# =============================================================================
-# JOINT DETERMINATION TABLE
-# =============================================================================
-
-print("\n" + "="*70)
-print("JOINT DETERMINATION TABLE (Reporting g values)")
-print("="*70)
-print(f"{'g':>8} {'sigma_pop':>10} {'WAAD_P':>8} {'sigma_tax':>10} {'WAAD_T':>8}")
-print("-"*70)
-for row in report_results:
-    print(f"{row['g']:>8.3f} {row['sigma_pop']:>10.3f} {row['waad_pop']:>7.2f}% "
-          f"{row['sigma_tax']:>10.3f} {row['waad_tax']:>7.2f}%")
-print("-"*70)
 
 # =============================================================================
 # GLOBAL BEST
