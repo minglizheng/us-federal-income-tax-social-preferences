@@ -11,9 +11,11 @@ This repository contains the replication code for the paper "Deservingness and I
 
 Install dependencies:
 
-```bash
+```
+bash
 pip install -r requirements.txt
-'''Data
+```
+## Data
 The CPS ASEC data are publicly available from the U.S. Census Bureau:
 
 Website: https://www.census.gov/programs-surveys/cps/data.html
@@ -22,7 +24,8 @@ Download the ASEC person-level files (pppub files)
 
 Place them in the same directory as the Python scripts
 
-Required Files
+## Required Files
+
 File	Tax Year	ASEC Survey Year
 pppub19.csv	2018	2019
 pppub20.csv	2019	2020
@@ -31,7 +34,9 @@ pppub22.csv	2021	2022
 pppub23.csv	2022	2023
 pppub24.csv	2023	2024
 pppub25.csv	2024	2025
-Required Variables
+
+## Required Variables
+
 The code uses the following variables from the CPS ASEC pppub files:
 
 FILESTAT: Filing status
@@ -58,7 +63,8 @@ MARSUPWT: March Supplement person weight
 
 EIP_CRD: Economic Impact Payment (2020 and 2021 files only)
 
-Code Structure
+## Code Structure
+
 Baseline Estimation by Tax Year
 File	Tax Year	Description
 asec2019_baseline.py	2018	Baseline MFJ estimation
@@ -75,11 +81,14 @@ asec2024_no_credits.py	EITC/ACTC excluded from disposable income
 asec2024_pref_income.py	Alternative treatments of preferential income
 asec2024_single.py	Single filing status, with and without EITC/ACTC
 asec2024_hh.py	Head of Household filing status, with and without EITC/ACTC
-Running the Code
+
+## Running the Code
 Each file is self-contained. Run any file with:
 
+```
 bash
 python asec2024_baseline.py
+```
 What Each Script Does
 Loads the specified CPS ASEC data file
 
@@ -97,7 +106,7 @@ Tax-weighted WAAD
 
 Prints detailed results for manual checking
 
-Key Settings
+## Key Settings
 Each script has a settings section at the top where you can adjust:
 
 USE_WEIGHTS: True for weighted, False for unweighted
@@ -126,11 +135,6 @@ Joint search results for each g
 
 Global best results for population-weighted and tax-weighted criteria
 
-Notes on Numerical Precision
+## Notes on Numerical Precision
 The objective function is flat near the optimum. The exact numerical minimum may vary slightly across computing environments or repeated runs. The substantive conclusions are based on the broad pattern of the WAAD surface, which is robust across environments.
-
-License
-MIT License
-
-text
 
