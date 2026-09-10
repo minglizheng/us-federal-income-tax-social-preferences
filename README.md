@@ -26,43 +26,34 @@ Place them in the same directory as the Python scripts
 
 ## Required Files
 
-File	Tax Year	ASEC Survey Year
-pppub19.csv	2018	2019
-pppub20.csv	2019	2020
-pppub21.csv	2020	2021
-pppub22.csv	2021	2022
-pppub23.csv	2022	2023
-pppub24.csv	2023	2024
-pppub25.csv	2024	2025
+| File | Tax Year | ASEC Survey Year |
+| :--- | :--- | :--- |
+| `pppub19.csv` | 2018 | 2019 |
+| `pppub20.csv` | 2019 | 2020 |
+| `pppub21.csv` | 2020 | 2021 |
+| `pppub22.csv` | 2021 | 2022 |
+| `pppub23.csv` | 2022 | 2023 |
+| `pppub24.csv` | 2023 | 2024 |
+| `pppub25.csv` | 2024 | 2025 |
 
 ## Required Variables
 
 The code uses the following variables from the CPS ASEC pppub files:
 
-FILESTAT: Filing status
-
-TAX_ID: Tax unit identifier
-
-AGI: Adjusted Gross Income
-
-CAP_VAL: Net capital gains
-
-DIV_VAL: Dividend income
-
-TAX_INC: Taxable income (from Census tax model)
-
-FEDTAX_AC: Federal tax after credits
-
-FEDTAX_BC: Federal tax before credits
-
-SPM_EITC: Earned Income Tax Credit
-
-SPM_ACTC: Additional Child Tax Credit
-
-MARSUPWT: March Supplement person weight
-
-EIP_CRD: Economic Impact Payment (2020 and 2021 files only)
-
+| Variable | Description |
+| :--- | :--- |
+| `FILESTAT` | Filing status |
+| `TAX_ID` | Tax unit identifier |
+| `AGI` | Adjusted Gross Income |
+| `CAP_VAL` | Net capital gains |
+| `DIV_VAL` | Dividend income |
+| `TAX_INC` | Taxable income (from Census tax model) |
+| `FEDTAX_AC` | Federal tax after credits |
+| `FEDTAX_BC` | Federal tax before credits |
+| `SPM_EITC` | Earned Income Tax Credit |
+| `SPM_ACTC` | Additional Child Tax Credit |
+| `MARSUPWT` | March Supplement person weight |
+| `EIP_CRD` | Economic Impact Payment (2020 and 2021 files only) |
 ## Code Structure
 
 ### Baseline Estimation by Tax Year
