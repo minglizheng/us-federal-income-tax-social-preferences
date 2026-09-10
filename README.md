@@ -119,7 +119,7 @@ G_GRID: Grid values for the government revenue share
 
 SIGMA_GRID: Grid values for the inequality aversion parameter
 
-Output
+## Output
 The scripts print:
 
 Sample size and descriptive statistics
