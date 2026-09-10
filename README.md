@@ -65,22 +65,26 @@ EIP_CRD: Economic Impact Payment (2020 and 2021 files only)
 
 ## Code Structure
 
-Baseline Estimation by Tax Year
-File	Tax Year	Description
-asec2019_baseline.py	2018	Baseline MFJ estimation
-asec2020_baseline.py	2019	Baseline MFJ estimation
-asec2021_baseline.py	2020	Baseline MFJ estimation, with and without EIP
-asec2022_baseline.py	2021	Baseline MFJ estimation, with and without EIP
-asec2023_baseline.py	2022	Baseline MFJ estimation
-asec2024_baseline.py	2023	Baseline MFJ estimation
-asec2025_baseline.py	2024	Baseline MFJ estimation
-Robustness Checks (Tax Year 2023)
-File	Description
-asec2024_unweighted.py	All survey weights set to 1
-asec2024_no_credits.py	EITC/ACTC excluded from disposable income
-asec2024_pref_income.py	Alternative treatments of preferential income
-asec2024_single.py	Single filing status, with and without EITC/ACTC
-asec2024_hh.py	Head of Household filing status, with and without EITC/ACTC
+### Baseline Estimation by Tax Year
+| File | Tax Year | Description |
+| :--- | :--- | :--- |
+| `asec2019_baseline.py` | 2018 | Baseline MFJ estimation |
+| `asec2020_baseline.py` | 2019 | Baseline MFJ estimation |
+| `asec2021_baseline.py` | 2020 | Baseline MFJ estimation, with and without EIP |
+| `asec2022_baseline.py` | 2021 | Baseline MFJ estimation, with and without EIP |
+| `asec2023_baseline.py` | 2022 | Baseline MFJ estimation |
+| `asec2024_baseline.py` | 2023 | Baseline MFJ estimation |
+| `asec2025_baseline.py` | 2024 | Baseline MFJ estimation |
+
+### Robustness Checks (Tax Year 2023)
+
+| File | Description |
+| :--- | :--- |
+| `asec2024_unweighted.py` | All survey weights set to 1 |
+| `asec2024_no_credits.py` | EITC/ACTC excluded from disposable income |
+| `asec2024_pref_income.py` | Alternative treatments of preferential income |
+| `asec2024_single.py` | Single filing status, with and without EITC/ACTC |
+| `asec2024_hh.py` | Head of Household filing status, with and without EITC/ACTC |
 
 ## Running the Code
 Each file is self-contained. Run any file with:
